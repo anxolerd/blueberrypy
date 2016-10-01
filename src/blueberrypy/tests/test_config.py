@@ -5,7 +5,11 @@ import warnings
 
 from functools import partial
 from StringIO import StringIO
-from unittest import mock
+try:
+    from unittest import mock
+except ImportError:
+    # fallback for old python
+    import mock
 
 from jinja2.loaders import DictLoader
 from webassets import Environment
