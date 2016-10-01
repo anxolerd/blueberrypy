@@ -283,7 +283,7 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
 
     @mock.patch('os.path.exists', get_dummy_exists([
         '/tmp/dev/app.yml', '/tmp/dev/bundles.yml', '/tmp/dev/logging.yml',
-        '/tmp/dev/app.overrides.yml',
+        '/tmp/dev/app.override.yml',
     ]))
     @mock.patch('builtins.open', get_dummy_open({
         '/tmp/dev/app.yml': [
@@ -293,7 +293,7 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
             value2: value2
             """),
         ],
-        '/tmp/dev/app.overrides.yml': [
+        '/tmp/dev/app.override.yml': [
             textwrap.dedent("""
             value1: new value1
             """),
@@ -307,5 +307,5 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
     )
     def test_config_overrides_file(self):
         config = BlueberryPyConfiguration(config_dir="/tmp")
-        self.assertEqual(config.app_config['value1'], 'new value1')
-        self.assertEqual(config.app_config['value2'], 'value2')
+        self.assertEqual('new value1', config.app_config['value1'])
+        self.assertEqual('value2', config.app_config['value2'])
