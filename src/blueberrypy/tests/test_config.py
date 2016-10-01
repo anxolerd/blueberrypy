@@ -103,7 +103,7 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
     }))
     @mock.patch(
         'blueberrypy.config.BlueberryPyConfiguration.validate', 
-        (lambda self: None),
+        lambda self: None,
     )
     def test_config_file_paths(self):
         config = BlueberryPyConfiguration(config_dir="/tmp")
@@ -307,7 +307,7 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
     }))
     @mock.patch(
         'blueberrypy.config.BlueberryPyConfiguration.validate', 
-        (lambda self: None),
+        lambda self: None,
     )
     def test_config_overrides_file(self):
         config = BlueberryPyConfiguration(config_dir="/tmp")
