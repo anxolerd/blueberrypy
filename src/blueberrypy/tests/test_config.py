@@ -282,3 +282,63 @@ class BlueberryPyConfigurationTest(unittest.TestCase):
         rest_controller.connect("dummy", "/dummy", DummyRestController, action="dummy")
         app_config = {"controllers": {"/api": {"controller": rest_controller}}}
         config = BlueberryPyConfiguration(app_config=app_config)
+
+    def test_config_overrides_file(self):
+        # stub out os.path.exists
+        import os.path
+        old_exists = os.path.exists
+
+        def proxied_exists(path):
+            if path == "/tmp/dev/app.yml":
+                return True
+            elif path == "/tmp/dev/bundles.yml":
+                return True
+            elif path == "/tmp/dev/logging.yml":
+                return True
+            elif path == "/tmp/dev/app.overrides.yml":
+                return True
+            return old_exists(path)
+        os.path.exists = proxied_exists
+        old_open = builtins.open
+
+        # stub out open
+        class FakeFile(StringIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type=None, exc_value=None, traceback=None):
+                return False
+
+        def proxied_open(filename, mode='r', buffering=1):
+            if filename == "/tmp/dev/app.overrides.yml":
+                return FakeFile(textwrap.dedent("""
+                value1: new value1
+                """))
+            if filename == "/tmp/dev/app.yml":
+                return FakeFile(textwrap.dedent("""
+                value1: value1
+                value2: value2
+                """))
+            elif filename == "/tmp/dev/bundles.yml":
+                return FakeFile(textwrap.dedent("""
+                directory: /tmp
+                url: /
+                """))
+            elif filename == "/tmp/dev/logging.yml":
+                return FakeFile()
+            else:
+                return old_open(filename, mode, buffering)
+        builtins.open = proxied_open
+
+        # stub out validate()
+        old_validate = BlueberryPyConfiguration.validate
+        BlueberryPyConfiguration.validate = lambda self: None
+
+        try:
+            config = BlueberryPyConfiguration(config_dir="/tmp")
+            self.assertEqual(config.app_config['value1'], 'new value1')
+            self.assertEqual(config.app_config['value2'], 'value2')
+        finally:
+            BlueberryPyConfiguration.validate = old_validate
+            os.path.exists = old_exists
+            builtins.open = old_open
