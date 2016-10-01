@@ -90,7 +90,7 @@ class BlueberryPyConfiguration(object):
         bundles_yml_path = os.path.join(config_dir, "bundles.yml")
 
         # A local-only config, which overrides the app.yml values
-        app_local_yml_path = os.path.join(config_dir, "app.local.yml")
+        app_overrides_yml_path = os.path.join(config_dir, "app.overrides.yml")
 
         if os.path.exists(app_yml_path):
             config_file_paths["app_yml"] = app_yml_path
@@ -101,8 +101,8 @@ class BlueberryPyConfiguration(object):
         if os.path.exists(bundles_yml_path):
             config_file_paths["bundles_yml"] = bundles_yml_path
 
-        if os.path.exists(app_local_yml_path):
-            config_file_paths["app_local_yml"] = app_local_yml_path
+        if os.path.exists(app_overrides_yml_path):
+            config_file_paths["app_overrides_yml"] = app_overrides_yml_path
 
         self._config_file_paths = config_file_paths
 
@@ -110,15 +110,17 @@ class BlueberryPyConfiguration(object):
             with open(config_file_paths["app_yml"]) as app_yml:
                 self._app_config = load(app_yml, Loader)
 
-        # If config is not provided explicitly via app_config variable 
-        # and the overrides file exists, override the app config values
-        # with ones from app.local.yml
-        if "app_local_yml" in config_file_paths and not app_config:
-            app_local_config = {}
-            with open(config_file_paths["app_local_yml"]) as app_local_yml:
-                app_local_config = load(app_local_yml, Loader)
+            # If the overrides file exists, override the app config values
+            # with ones from app.overrides.yml
+            if "app_overrides_yml" in config_file_paths:
+                app_overrides_config = {}
+                with open(config_file_paths["app_overrides_yml"]) as app_overrides_yml:
+                    app_overrides_config = load(app_overrides_yml, Loader)
 
-            self._app_config = self.__class__.merge_dicts(self._app_config, app_local_config)
+                self._app_config = self.__class__.merge_dicts(
+                    self._app_config, 
+                    app_overrides_config
+                )
 
         if "logging_yml" in config_file_paths and not logging_config:
             with open(config_file_paths["logging_yml"]) as logging_yml:
